@@ -54,7 +54,7 @@
 
           }
     }
-    header("location : http://localhost/RtCamp/display-albums.php");
+    
   }
 
 }
@@ -97,7 +97,6 @@
 .modal-full .modal-content {
     min-height: 100vh;
 }
-
 </style>
 <body class="bg-img">
   <nav class="navbar navbar-expand-lg navbar-light mynav">
@@ -139,10 +138,7 @@
                   <input type="checkbox" name="chk" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>" onclick="onoff()"><b><?php echo $user['albums'][$i]['name'] ?></b></p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <form action="" method="get">
-                      <input type="hidden" name="ids" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>">
-                      <input type="submit" class="btn btn-sm btn-primary" name="btn-download" value="Download">
-                    </form>
+                      <button onclick="download_album('<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>')" class="btn btn-sm btn-primary" name="btn-download">Download</button>
                     <button type="button" class="btn btn-sm " onClick="move_album('<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>');" style="height:31px;">Move to Drive</button>
                   </div>
                   <small class="text-muted"><b><?php echo $count.' Images' ?></b></small>
@@ -215,22 +211,13 @@
   }
   function download_album(id){
     $('#myModal').modal('toggle');
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        $('#myModal').modal('toggle');
-        var links=this.responseText.split("_");
-        for(var i=0;i<links.length;i++){
-          if(links[i]!=""){
-            window.open(links[i],"_blank");
-          }
-        }
-      }
-    };
-    xhttp.open("GET", "download.php?albumid="+id, true);
-    xhttp.send();
+    var idField=document.getElementById("newids");
+    idField.value=id;
+     document.getElementById("myForm").submit();
+     $('#myModal').modal('toggle');
   }
   function download_selected_album(){
+    $('#myModal').modal('toggle');
     var selected_chk=document.querySelectorAll('input[name=chk]:checked');
     var selctedAlbums="";
      var idField=document.getElementById("newids");
@@ -238,10 +225,9 @@
     {
          selctedAlbums=selctedAlbums+selected_chk[i].value+"_";
     }
-
-         idField.value=selctedAlbums;
-         document.getElementById("myForm").submit();
-
+     idField.value=selctedAlbums;
+     document.getElementById("myForm").submit();
+     $('#myModal').modal('toggle');
    
    
   }
@@ -273,7 +259,7 @@
 
     document.getElementById("img-container").innerHTML = '';
 
-    $("#img-container").append("<div class='carousel-item active'><img src='images/welcome_slideshow.jpeg' style='height : 100vh; width:100% '></div>");
+    $("#img-container").append("<div class='carousel-item active'><img src='images/welcome_slideshow.jpeg'  style='height : 100vh; width:100% '></div>");
     loadImages(id);
     $('#mySlider').modal('toggle');
   }
@@ -340,7 +326,7 @@
              xhttp.onreadystatechange = function() {
               if (this.readyState == 4 && this.status == 200) 
               {     
-                 $("#img-container").append(" <div class='carousel-item'> <img src='"+this.responseText+"' style='height : 100vh; position: absolute; z-index:-1; width:100%; filter: blur(10px);'><img src='"+this.responseText+"' style='height:100vh;'> </div>");
+                 $("#img-container").append(" <div class='carousel-item'> <img src='"+this.responseText+"' style='height : 100vh; position: absolute; z-index:-1; width:100%; filter: blur(10px);'><img src='"+this.responseText+"' class='mx-auto d-block' style='height:100vh;'> </div>");
                }
             };
             xhttp.open("GET", "http://localhost/rtCamp/load-album.php?imageid="+arr[i], true);
