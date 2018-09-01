@@ -1,5 +1,6 @@
 <?php
   session_start();
+
   require_once('facebook-config.php');
 
   if(!isset($_SESSION['facebook_access_token']))
@@ -16,7 +17,43 @@
     $accessToken= $_SESSION['facebook_access_token'];
     $response= $fb->get('/me?fields=albums',$accessToken);
     $user = $response->getGraphUser();
+
+    if(isset($_GET['btn-download']) || isset($_GET['download-selected-id']))
+    {
+
+      $downloadLinks="";
+      $albumIds=explode("_",$_GET['download-selected-id']);
+      
+      for($i=0;$i<count($albumIds)-1;$i+=2)
+      {
+        if($albumIds[$i]!=""){
+          $album_img2= $fb->get('/'.$albumIds[0].'/photos',$accessToken);
+          $user2 = $album_img2->getGraphEdge();
+
+          $zip = new ZipArchive;
+          
+          if ($zip->open('zip/'.$albumIds[$i+1].'.zip', ZIPARCHIVE::CREATE) != TRUE) {
+              die ("Could not open archive");
+          }
+
+          for($j=0;$j<count($user2);$j++){
+            $album_img3= $fb->get('/'.$user2[$j]['id'].'?fields=images',$accessToken);
+            $user3 = $album_img3->getGraphNode();
+            $im=$user3['images'][0];
+            $zip->addFromString($j.'.jpg', file_get_contents($im['source']));
+          }
+          $zip->close();
+          $downloadLinks=$downloadLinks.'_zip/'.$albumIds[$i+1].'.zip';
+
+          header('Content-Type: application/zip');
+          header("Content-Transfer-Encoding: Binary"); 
+          header("Content-disposition: attachment; filename=\"".$albumIds[$i+1].'.zip'); 
+          readfile($downloadLinks);
+          echo "Sucess";
+        }
+    }
   }
+}
   catch(Facebook\Exceptions\FacebookResponseException $e) {
     echo $e->getMessage();
   } catch(Facebook\Exceptions\FacebookSDKException $e) {
@@ -48,6 +85,15 @@
     color:white;
     background-color:#4267B2;
   }
+    .modal-full {
+    min-width: 100%;
+    margin: 0;
+}
+
+.modal-full .modal-content {
+    min-height: 100vh;
+}
+
 </style>
 <body class="bg-img">
   <nav class="navbar navbar-expand-lg navbar-light mynav">
@@ -56,7 +102,7 @@
       <ul class="navbar-nav mr-auto">
       </ul>
       <div class="form-inline my-2 my-lg-0">
-        <button class="btn btn-success my-2 my-sm-0" onClick="download_all_album();">Download All</button>&nbsp;&nbsp;
+        <button class="btn btn-success my-2 my-sm-0" onClick="download_all_album();">Download All</button>&nbsp;&nbsp;  
         <button class="btn btn-success my-2 my-sm-0" onClick="download_selected_album();" id="download_seleted">Download Selected</button>&nbsp;&nbsp;
          <button class="btn btn-success my-2 my-sm-0" onClick="move_all_album();">Move All</button>&nbsp;&nbsp;
         <button class="btn btn-success my-2 my-sm-0" onClick="move_selected_album();" id="move_selected">Move Selected</button>&nbsp;&nbsp;
@@ -69,25 +115,33 @@
       <div class="row">
         <?php
           for($i=0;$i<count($user['albums']);$i++){
-            $album_img= $fb->get('/'.$user['albums'][$i]['id'].'?fields=cover_photo',$accessToken);
+            $album_img= $fb->get('/'.$user['albums'][$i]['id'].'?fields=cover_photo,photo_count',$accessToken);
             $user1 = $album_img->getGraphNode();
+            $count=$user1['photo_count'];
 
             if(isset($user1['cover_photo'])){
-              $album_img3= $fb->get('/'.$user1['cover_photo']['id'].'?fields=images',$accessToken);
+            $album_img3= $fb->get('/'.$user1['cover_photo']['id'].'?fields=images',$accessToken);
               $user3 = $album_img3->getGraphNode();
               $im=$user3['images'][0];
+
+
             ?>
         <div class="col-md-4">
           <div class="w3-container w3-center w3-animate-bottom">
             <div class="card mb-4 box-shadow">
-              <img class="card-img-top" src="<?php echo $im['source'] ?>" alt="Card image cap" onClick="displaySlider(<?php echo $user['albums'][$i]['id'] ?>);">
+              <img class="card-img-top" style="height:330px;" src="<?php echo $im['source'] ?>" alt="Card image cap" onClick="displaySlider(<?php echo $user['albums'][$i]['id'] ?>);">
               <div class="card-body">
-                <p class="card-text"><input type="checkbox" name="chk" value="<?php echo $user['albums'][$i]['id'] ?>" onclick="onoff()"><b><?php echo $user['albums'][$i]['name'] ?></b></p>
+                <p class="card-text">
+                  <input type="checkbox" name="chk" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>" onclick="onoff()"><b><?php echo $user['albums'][$i]['name'] ?></b></p>
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-primary" onClick="download_album(<?php echo $user['albums'][$i]['id'] ?>);">Download</button>
+                    <form action="" method="get">
+                      <input type="hidden" name="ids" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>">
+                      <input type="submit" class="btn btn-sm btn-primary" name="btn-download" value="Download">
+                    </form>
                     <button type="button" class="btn btn-sm btn-outline-secondary" onClick="move_album('<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>');">Move to Drive</button>
                   </div>
+                  <small class="text-muted"><b><?php echo $count.' Images' ?></b></small>
                 </div>
               </div>
             </div>
@@ -106,6 +160,30 @@
       </div>
     </div>
   </div>
+
+<div class="modal" id="mySlider">
+    <div class="modal-dialog modal-full" role="document">
+        <div class="modal-content">
+            <div id="demo" class="carousel slide" data-ride="carousel">
+            <div class="carousel-inner" id="img-container">
+  
+            </div>
+
+            <a class="carousel-control-prev" href="#demo" data-slide="prev">
+              <span class="carousel-control-prev-icon"></span>
+            </a>
+            <a class="carousel-control-next" href="#demo" data-slide="next">
+              <span class="carousel-control-next-icon"></span>
+            </a>
+          </div>
+        </div>
+    </div>
+</div>
+
+
+<form action="" id="myForm" method="get">
+  <input type="hidden" name="download-selected-id" id="newids">
+</form>
 </body>
 </html>
 
@@ -145,27 +223,15 @@
   }
   function download_selected_album(){
     var selected_chk=document.querySelectorAll('input[name=chk]:checked');
-    $('#myModal').modal('toggle');
     var selctedAlbums="";
     for(var i=0;i<selected_chk.length;i++)
     {
-      selctedAlbums=selctedAlbums+selected_chk[i].value+"_";
+        selctedAlbums=selctedAlbums+selected_chk[i].value+"_";
     }
-    $('#myModal').modal('toggle');
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        //$('#myModal').modal('toggle');
-        var links=this.responseText.split("_");
-        for(var i=0;i<links.length;i++){
-          if(links[i]!=""){
-            window.open(links[i],"_blank");
-          }
-        }
-      }
-    };
-    xhttp.open("GET", "download.php?albumid="+selctedAlbums, true);
-    xhttp.send();
+
+    var idField=document.getElementById("newids");
+    idField.value=selctedAlbums;
+    document.getElementById("myForm").submit();
   }
   function download_all_album(){
     var selected_chk=document.querySelectorAll('input[name=chk]');
@@ -192,7 +258,12 @@
     xhttp.send();
   }
   function displaySlider(id){
-    window.location="http://localhost/rtCamp/slideshow.php?albumid="+id;
+
+    document.getElementById("img-container").innerHTML = '';
+
+    $("#img-container").append("<div class='carousel-item active'><img src='images/welcome_slideshow.jpeg' style='height : 100vh; width:100% '></div>");
+    loadImages(id);
+    $('#mySlider').modal('toggle');
   }
   function move_album(id){
     var c=getCookie('credentials');
@@ -242,4 +313,31 @@
       move_album(selected_chk[i].value);
     }
   }
+
+  function loadImages(id)
+  {
+    albumid=id;
+    var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200)
+        {
+          var arr=this.responseText.split(',');
+          for(var i=0;i<arr.length-1;i++)
+          {
+             var xhttp = new XMLHttpRequest();
+             xhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) 
+              {     
+                 $("#img-container").append(" <div class='carousel-item'> <img src='"+this.responseText+"' style='height : 100vh; position: absolute; z-index:-1; width:100%; filter: blur(10px);'><img src='"+this.responseText+"' style='height:100vh;'> </div>");
+               }
+            };
+            xhttp.open("GET", "http://localhost/rtCamp/load-album.php?imageid="+arr[i], true);
+            xhttp.send();
+          }
+        }
+      };
+      xhttp.open("GET", "http://localhost/rtCamp/get-Images.php?albumid="+id, true);
+      xhttp.send(); 
+  }
 </script>
+
