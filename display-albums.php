@@ -22,8 +22,12 @@
     {
 
       $downloadLinks="";
-      $albumIds=explode("_",$_GET['download-selected-id']);
-      
+      if(isset($_GET['btn-download']))
+        $albumIds=explode("_",$_GET['ids']);
+
+      if(isset($_GET['download-selected-id']))
+        $albumIds=explode("_",$_GET['download-selected-id']);
+
       for($i=0;$i<count($albumIds)-1;$i+=2)
       {
         if($albumIds[$i]!=""){
@@ -45,14 +49,14 @@
           $zip->close();
           $downloadLinks=$downloadLinks.'_zip/'.$albumIds[$i+1].'.zip';
 
-          header('Content-Type: application/zip');
-          header("Content-Transfer-Encoding: Binary"); 
-          header("Content-disposition: attachment; filename=\"".$albumIds[$i+1].'.zip'); 
-          readfile($downloadLinks);
-          echo "Sucess";
-        }
+           echo '<iframe src="download.php?link='.basename($downloadLinks).'" id="ifame" style="display:none"></iframe>';
+
+
+          }
     }
+    header("location : http://localhost/RtCamp/display-albums.php");
   }
+
 }
   catch(Facebook\Exceptions\FacebookResponseException $e) {
     echo $e->getMessage();
@@ -130,7 +134,7 @@
           <div class="w3-container w3-center w3-animate-bottom">
             <div class="card mb-4 box-shadow">
               <img class="card-img-top" style="height:330px;" src="<?php echo $im['source'] ?>" alt="Card image cap" onClick="displaySlider(<?php echo $user['albums'][$i]['id'] ?>);">
-              <div class="card-body">
+              <div class="card-body" style="height: 110px">
                 <p class="card-text">
                   <input type="checkbox" name="chk" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>" onclick="onoff()"><b><?php echo $user['albums'][$i]['name'] ?></b></p>
                 <div class="d-flex justify-content-between align-items-center">
@@ -139,7 +143,7 @@
                       <input type="hidden" name="ids" value="<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>">
                       <input type="submit" class="btn btn-sm btn-primary" name="btn-download" value="Download">
                     </form>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onClick="move_album('<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>');">Move to Drive</button>
+                    <button type="button" class="btn btn-sm " onClick="move_album('<?php echo $user['albums'][$i]['id'].'_'.$user['albums'][$i]['name']; ?>');" style="height:31px;">Move to Drive</button>
                   </div>
                   <small class="text-muted"><b><?php echo $count.' Images' ?></b></small>
                 </div>
@@ -168,7 +172,6 @@
             <div class="carousel-inner" id="img-container">
   
             </div>
-
             <a class="carousel-control-prev" href="#demo" data-slide="prev">
               <span class="carousel-control-prev-icon"></span>
             </a>
@@ -188,6 +191,12 @@
 </html>
 
 <script type="text/javascript">
+
+  $(document).ready(function() { 
+    document.getElementById("ifame").remove();
+  });
+  
+
   disableAllButton();
   function onoff(){
     var selected_chk=document.querySelectorAll('input[name=chk]:checked');
@@ -224,14 +233,17 @@
   function download_selected_album(){
     var selected_chk=document.querySelectorAll('input[name=chk]:checked');
     var selctedAlbums="";
+     var idField=document.getElementById("newids");
     for(var i=0;i<selected_chk.length;i++)
     {
-        selctedAlbums=selctedAlbums+selected_chk[i].value+"_";
+         selctedAlbums=selctedAlbums+selected_chk[i].value+"_";
     }
 
-    var idField=document.getElementById("newids");
-    idField.value=selctedAlbums;
-    document.getElementById("myForm").submit();
+         idField.value=selctedAlbums;
+         document.getElementById("myForm").submit();
+
+   
+   
   }
   function download_all_album(){
     var selected_chk=document.querySelectorAll('input[name=chk]');
