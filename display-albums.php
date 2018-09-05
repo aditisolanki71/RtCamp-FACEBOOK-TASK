@@ -31,7 +31,7 @@
       for($i=0;$i<count($albumIds)-1;$i+=2)
       {
         if($albumIds[$i]!=""){
-          $album_img2= $fb->get('/'.$albumIds[0].'/photos',$accessToken);
+          $album_img2= $fb->get('/'.$albumIds[0].'/photos?limit=500',$accessToken);
           $user2 = $album_img2->getGraphEdge();
 
           $zip = new ZipArchive;
