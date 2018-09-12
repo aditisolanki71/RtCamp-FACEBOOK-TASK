@@ -327,11 +327,7 @@
           }
         }
       };
-<<<<<<< HEAD
       xhttp.open("GET", "<?php echo WEB ?>get-Images.php?albumid="+id, true);
-=======
-      xhttp.open("GET", "http://localhost/rtCamp/get-Images.php?albumid="+id, true);
->>>>>>> 6d7e251a4da66a112a83d94012beac6bba942f81
       xhttp.send(); 
   }
 </script>
