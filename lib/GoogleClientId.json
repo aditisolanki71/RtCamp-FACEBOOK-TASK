@@ -1,0 +1,5 @@
+<<<<<<< HEAD
+{"web":{"client_id":"449032416860-qo6v5o9mnpt7316fpg79f87935ma7jp6.apps.googleusercontent.com","project_id":"rtcamp-task","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://www.googleapis.com/oauth2/v3/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"-UcRhZ8hexKHOJReiZwdHfVO","redirect_uris":["https://rtcamp-task.herokuapp.com/"]}}
+=======
+{"web":{"client_id":"843052618238-4pi84tiu7r0oq0mvud37o9kq26uj2u6o.apps.googleusercontent.com","project_id":"myproject-213607","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://www.googleapis.com/oauth2/v3/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"pXRhIhuGzi5-ckeu0u0DCPmM","redirect_uris":["http://localhost/RtCamp/fileUpload.php"]}}
+>>>>>>> 6d7e251a4da66a112a83d94012beac6bba942f81
