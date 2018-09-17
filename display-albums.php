@@ -46,7 +46,7 @@
           $zip->close();
           $downloadLinks=$downloadLinks.'_zip/'.$albumIds[$i+1].'.zip';
 
-           echo '<iframe src="download.php?link='.basename($downloadLinks).'" id="ifame" style="display:none"></iframe>';
+           echo '<iframe src="download.php?link='.basename($downloadLinks).'" id="ifame"></iframe>';
 
 
           }
