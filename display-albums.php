@@ -180,9 +180,10 @@
 <script type="text/javascript">
 
   $(document).ready(function() { 
-    document.getElementById("ifame").remove();
-  });
-  
+      var ifames=document.getElementById("ifame");
+      if(ifames!=null)
+        document.getElementById("ifame").remove();
+    });
 
   disableAllButton();
   function onoff(){
